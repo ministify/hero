@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ministify - Amplify Your Ministry</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=Playfair+Display:ital,wght@0,700;1,400&family=Inter:wght@400;500;600;700;800&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        /* --- 1. SETTINGS & VARIABLES --- */
+        :root {
+            --primary-hero: #00a0a0; 
+            --accent-pink: #ec4899;
+            --bg-start: #f8f9fa; 
+            --bg-end: #e0e6ed;  
+            --text-main: #1f2937; 
+            --radius: 12px;
+        }
+
+        /* --- 2. GLOBAL RESET --- */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, var(--bg-start), var(--bg-end));
+            color: var(--text-main);
+            overflow-x: hidden; 
+            min-height: 100vh;
+        }
+        body.modal-open { overflow: hidden; }
+
+        /* --- 3. HERO SECTION --- */
+        .hero-section {
+            position: relative; width: 100%; 
+            min-height: 90vh; 
+            display: flex; align-items: center; justify-content: center;
+            padding: 20px; overflow: hidden;
+        }
+
+        /* Background Grid */
+        .hero-background-grid {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background-image: 
+                linear-gradient(rgba(209, 213, 219, 0.5) 1px, transparent 1px), 
+                linear-gradient(90deg, rgba(209, 213, 219, 0.5) 1px, transparent 1px);
+            background-size: 40px 40px; 
+            z-index: 0; animation: pan-grid 60s linear infinite; opacity: 0.6;
+        }
+        @keyframes pan-grid { 0% { background-position: 0 0; } 100% { background-position: 40px 40px; } }
+
+        .hero-glow {
+            position: absolute; z-index: 1; top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100%; max-width: 600px; height: 600px;
+            background: radial-gradient(circle, rgba(0, 160, 160, 0.15) 0%, rgba(0, 160, 160, 0) 70%); 
+            pointer-events: none;
+        }
+
+        /* --- 4. COMPACT CONTAINER LAYOUT --- */
+        .hero-container {
+            position: relative; z-index: 10;
+            max-width: 900px; width: 100%;
+            display: grid; grid-template-columns: 1fr 1fr;
+            align-items: center; gap: 20px; 
+        }
+
+        .hero-content { 
+            display: flex; flex-direction: column; gap: 15px; text-align: left; 
+            justify-content: center;
+        }
+        
+        .hero-headline { 
+            font-size: clamp(2rem, 4vw, 3rem); font-weight: 800; 
+            line-height: 1.1; color: #111;
+            text-shadow: 2px 2px 0px rgba(255,255,255,0.5);
+            margin-top: 0; 
+        }
+        
+        #typing-wrapper { font-family: 'Roboto Mono', monospace; font-size: 0.95rem; color: #555; min-height: 3.2em; }
+        .cursor { display: inline-block; width: 8px; height: 18px; background: var(--primary-hero); animation: blink 1s infinite; vertical-align: middle; }
+        @keyframes blink { 50% { opacity: 0; } }
+
+        /* BUTTONS */
+        .hero-btns { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 5px; }
+        .hero-btn {
+            text-decoration: none; padding: 10px 24px; border-radius: 50px;
+            font-weight: 600; transition: transform 0.2s, box-shadow 0.2s;
+            display: flex; align-items: center; gap: 8px; font-size: 0.9rem;
+        }
+        
+        .btn-primary { 
+            background: var(--primary-hero); 
+            color: #ffffff !important; 
+            border: 2px solid var(--primary-hero); 
+        }
+        .btn-secondary { background: white; color: var(--primary-hero); border: 2px solid var(--primary-hero); }
+        .hero-btn:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
+
+        /* --- 5. COMPACT ORBIT WIDGET --- */
+        .hero-graphic { 
+            display: flex; justify-content: center; align-items: center; 
+            perspective: 1000px; 
+        }
+
+        #orbit-wrapper {
+            position: relative;
+            width: 280px; height: 280px; 
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            border-radius: 50%;
+            box-shadow: 0 20px 40px rgba(0, 160, 160, 0.15);
+            display: flex; align-items: center; justify-content: center;
+            transform-style: preserve-3d;
+            transition: transform 0.4s ease, box-shadow 0.4s ease;
+        }
+
+        /* PAUSE ON HOVER */
+        #orbit-wrapper:hover .orbit-ring,
+        #orbit-wrapper:hover .app-icon {
+            animation-play-state: paused;
+        }
+
+        .orbit-ring {
+            position: absolute; width: 0; height: 0; 
+            animation: spin 60s linear infinite; z-index: 5;
+        }
+        .orbit-ring.paused { animation-play-state: paused !important; }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+
+        .spoke {
+            position: absolute; top: 0; left: 0;
+            width: 40px; height: 40px; 
+            margin: -20px 0 0 -20px;
+        }
+        
+        .spoke:nth-child(1) { transform: rotate(0deg)   translate(100px) rotate(0deg); }
+        .spoke:nth-child(2) { transform: rotate(60deg)  translate(100px) rotate(-60deg); }
+        .spoke:nth-child(3) { transform: rotate(120deg) translate(100px) rotate(-120deg); }
+        .spoke:nth-child(4) { transform: rotate(180deg) translate(100px) rotate(-180deg); }
+        .spoke:nth-child(5) { transform: rotate(240deg) translate(100px) rotate(-240deg); }
+        .spoke:nth-child(6) { transform: rotate(300deg) translate(100px) rotate(-300deg); }
+
+        .app-icon {
+            width: 100%; height: 100%; border-radius: 50%; background: white;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1); cursor: pointer;
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            animation: counter-spin 60s linear infinite; border: 2px solid white;
+        }
+        .orbit-ring.paused .app-icon { animation-play-state: paused !important; }
+        @keyframes counter-spin { 100% { transform: rotate(-360deg); } }
+        .app-icon:hover { transform: scale(1.2); z-index: 100; box-shadow: 0 10px 25px rgba(0,160,160,0.3); }
+        .app-icon i { font-size: 16px; color: white; }
+
+        /* Colors */
+        .c1 { background: linear-gradient(135deg, #00a0a0, #0f766e); }
+        .c2 { background: linear-gradient(135deg, #ef4444, #b91c1c); }
+        .c3 { background: linear-gradient(135deg, #eab308, #a16207); }
+        .c4 { background: linear-gradient(135deg, #22c55e, #15803d); }
+        .c5 { background: linear-gradient(135deg, #8b5cf6, #6d28d9); }
+        .c6 { background: linear-gradient(135deg, #64748b, #334155); }
+
+        /* Hub */
+        .hub {
+            width: 80px; height: 80px; 
+            background: white; border-radius: 50%;
+            position: absolute; z-index: 1;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            box-shadow: 0 0 20px rgba(0, 160, 160, 0.1);
+            border: 3px solid rgba(255,255,255,0.8);
+        }
+        .hub h1 { margin:0; font-size: 11px; font-weight:800; color:#333; }
+        .hub span { font-size: 7px; text-transform:uppercase; letter-spacing:1px; color:var(--primary-hero); margin-top:2px; }
+
+        /* Overlay */
+        .orbit-overlay {
+            position: absolute; inset: 0; border-radius: 50%;
+            background: rgba(255,255,255,0.95); z-index: 20;
+            display: none; flex-direction: column; align-items: center; justify-content: center;
+            text-align: center; padding: 25px; animation: fadeIn 0.2s ease;
+        }
+        .orbit-overlay.active { display: flex; border-radius: 50%; } 
+        
+        @keyframes fadeIn { from{opacity:0; transform:scale(0.9);} to{opacity:1; transform:scale(1);} }
+
+        .ov-tag { color: var(--primary-hero); font-size: 0.6rem; font-weight: 700; text-transform: uppercase; margin-bottom:2px; }
+        .ov-title { font-family: 'Playfair Display', serif; font-size: 1.1rem; margin-bottom: 5px; line-height:1; }
+        .ov-desc { font-size: 0.7rem; color: #666; margin-bottom: 10px; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+        .ov-btn { 
+            background: var(--primary-hero); color: white; text-decoration: none; 
+            padding: 6px 14px; border-radius: 20px; font-size: 0.7rem; font-weight: 600; 
+            display: flex; align-items: center; gap: 4px; transition:0.2s;
+        }
+        .ov-btn:hover { background: #008080; }
+        .ov-close { position: absolute; top: 15px; right: 20px; font-size: 2rem; cursor: pointer; color:red; border:none; background:none; }
+        .ov-close:hover { color: #555; }
+
+        /* --- 6. MAIN MODAL --- */
+        #modal-backdrop {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 9999;
+            display: flex; align-items: center; justify-content: center;
+            opacity: 0; pointer-events: none; transition: 0.3s;
+        }
+        #modal-backdrop.open { opacity: 1; pointer-events: auto; }
+        .modal-card {
+            background: white; width: 90%; max-width: 400px;
+            border-radius: 20px; overflow: hidden; transform: translateY(20px); transition: 0.3s;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.2);
+        }
+        #modal-backdrop.open .modal-card { transform: translateY(0); }
+        .modal-header { padding: 15px 20px; border-bottom: 1px solid #eee; display:flex; justify-content:space-between; align-items:center; }
+        .modal-body { padding: 25px; text-align: center; }
+
+        /* --- 7. RESPONSIVE --- */
+        @media (max-width: 900px) {
+            .hero-section {
+                align-items: flex-start;
+                padding-top: 40px; 
+                padding-bottom: 40px;
+                min-height: auto; 
+            }
+
+            .hero-container { 
+                grid-template-columns: 1fr; 
+                gap: 30px; 
+                text-align: center; 
+            }
+            
+            .hero-content { 
+                align-items: center; 
+                order: 1; 
+                margin-bottom: 10px;
+            }
+            
+            .hero-graphic { order: 2; width: 100%; }
+            .hero-btns { justify-content: center; }
+            
+            #orbit-wrapper { width: 260px; height: 260px; transform: none !important; }
+            
+            .spoke:nth-child(1) { transform: rotate(0deg)   translate(85px) rotate(0deg); }
+            .spoke:nth-child(2) { transform: rotate(60deg)  translate(85px) rotate(-60deg); }
+            .spoke:nth-child(3) { transform: rotate(120deg) translate(85px) rotate(-120deg); }
+            .spoke:nth-child(4) { transform: rotate(180deg) translate(85px) rotate(-180deg); }
+            .spoke:nth-child(5) { transform: rotate(240deg) translate(85px) rotate(-240deg); }
+            .spoke:nth-child(6) { transform: rotate(300deg) translate(85px) rotate(-300deg); }
+            
+            .hub { width: 60px; height: 60px; }
+            .hub h1 { font-size: 9px; }
+        }
+    </style>
+</head>
+<body>
+
+    <section class="hero-section">
+        <div class="hero-background-grid"></div>
+        <div class="hero-glow"></div>
+
+        <div class="hero-container">
+            <div class="hero-content">
+                <h1 class="hero-headline">Web Serving</h1>
+                <div id="typing-wrapper"><span id="typing-text"></span><span class="cursor"></span></div>
+                <div class="hero-btns">
+                    <a href="#" id="btn-about" class="hero-btn btn-primary"><i class="fas fa-info-circle"></i> About</a>
+                    <a href="#" id="btn-contact" class="hero-btn btn-secondary"><i class="fas fa-paper-plane"></i> Contact</a>
+                </div>
+            </div>
+
+            <div class="hero-graphic">
+                <div id="orbit-wrapper">
+                    <div class="hub">
+                        <h1>MINISTIFY</h1>
+                        <span>SERVICES</span>
+                    </div>
+
+                    <div class="orbit-ring" id="ring">
+                        <div class="spoke"><div class="app-icon c1" onclick="Orbit.open('apps')"><i class="fa-solid fa-laptop-code"></i></div></div>
+                        <div class="spoke"><div class="app-icon c2" onclick="Orbit.open('news')"><i class="fa-solid fa-newspaper"></i></div></div>
+                        <div class="spoke"><div class="app-icon c3" onclick="Orbit.open('courses')"><i class="fa-solid fa-graduation-cap"></i></div></div>
+                        <div class="spoke"><div class="app-icon c4" onclick="Orbit.open('webdev')"><i class="fa-solid fa-code"></i></div></div>
+                        <div class="spoke"><div class="app-icon c5" onclick="Orbit.open('support')"><i class="fa-solid fa-headset"></i></div></div>
+                        <div class="spoke"><div class="app-icon c6" onclick="Orbit.open('evangelism')"><i class="fa-solid fa-bullhorn"></i></div></div>
+                    </div>
+
+                    <div id="orbit-overlay" class="orbit-overlay">
+                        <button class="ov-close" onclick="Orbit.close()">&times;</button>
+                        <div id="ov-tag" class="ov-tag">TAG</div>
+                        <h3 id="ov-title" class="ov-title">Title</h3>
+                        <p id="ov-desc" class="ov-desc">Description goes here...</p>
+                        <a href="#" id="ov-link" class="ov-btn" target="_blank">Learn More <i class="fa-solid fa-arrow-right"></i></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div id="modal-backdrop">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 id="modal-title" style="font-weight:700; color:#333;">Title</h3>
+                <button id="modal-close" style="background:none; border:none; font-size:1.5rem; cursor:pointer;">&times;</button>
+            </div>
+            <div class="modal-body" id="modal-body">Content...</div>
+        </div>
+    </div>
+
+<script>
+    // 1. COPY TO CLIPBOARD HELPER
+    window.copyToClipboard = (text, btn) => {
+        navigator.clipboard.writeText(text).then(() => {
+            const icon = btn.querySelector('i');
+            const span = btn.querySelector('span');
+            
+            // Save original state
+            const originalIcon = icon.className;
+            const originalText = span.innerText;
+
+            // Update to "Copied!" state
+            icon.className = "fas fa-check";
+            span.innerText = "Copied!";
+            btn.style.color = "#22c55e"; // Green
+            btn.style.borderColor = "#22c55e";
+
+            // Revert after 2 seconds
+            setTimeout(() => {
+                icon.className = originalIcon;
+                span.innerText = originalText;
+                btn.style.color = "#555"; 
+                btn.style.borderColor = "#ccc";
+            }, 2000);
+        }).catch(err => {
+            console.error('Failed to copy: ', err);
+        });
+    };
+
+    // 2. ORBIT LOGIC
+    const Orbit = (() => {
+        const SERVICES = {
+            apps: { t: "Free Web Apps", u: "https://ministify.com/dash", d: "Privacy-focused tools designed for bible study, prayer tracking, and church management.", tag: "Resources" },
+            news: { t: "News & Literature", u: "https://ministify.com/read", d: "Christian events, stories, poems, articles, and public service updates for the soul.", tag: "Publication" },
+            courses: { t: "Biblical Courses", u: "https://ministify.com/learn", d: "Structured online learning modules for theology, discipleship, and spiritual growth.", tag: "Education" },
+            webdev: { t: "Web Development", u: "#", d: "Custom-built, responsive websites tailored specifically for ministries and non-profits.", tag: "Services" },
+            support: { t: "Tech Support", u: "#", d: "Expert assistance with digital tools, software setup, and troubleshooting for your team.", tag: "Help" },
+            evangelism: { t: "Evangelism", u: "#", d: "Digital strategies and modern tools to help spread the Gospel effectively.", tag: "Mission" }
+        };
+        const els = { ring: document.getElementById('ring'), ovl: document.getElementById('orbit-overlay'), tag: document.getElementById('ov-tag'), title: document.getElementById('ov-title'), desc: document.getElementById('ov-desc'), link: document.getElementById('ov-link') };
+        return {
+            open: (key) => { 
+                els.ring.classList.add('paused'); 
+                els.ovl.classList.add('active'); 
+                const data = SERVICES[key]; 
+                els.tag.innerText = data.tag; 
+                els.title.innerText = data.t; 
+                els.desc.innerText = data.d; 
+                els.link.href = data.u; 
+            },
+            close: () => { els.ovl.classList.remove('active'); els.ring.classList.remove('paused'); }
+        };
+    })();
+
+    // 3. TYPING LOGIC
+    document.addEventListener('DOMContentLoaded', () => {
+        const el = document.getElementById('typing-text');
+        const txts = ["Engage with your people.", "Speed-up basic tasks.", "AI-powered discipleship.", "Digital ministry tools.", "And so much more.", "Reach out to us.", "Let's collaborate."];
+        let tIdx = 0, cIdx = 0, isDel = false;
+        function type() {
+            const full = txts[tIdx];
+            if(isDel) { el.innerText = full.substring(0, cIdx--); if(cIdx < 0) { isDel = false; tIdx = (tIdx + 1) % txts.length; setTimeout(type, 500); } else setTimeout(type, 50); } 
+            else { el.innerText = full.substring(0, cIdx++); if(cIdx > full.length) { isDel = true; setTimeout(type, 2000); } else setTimeout(type, 100); }
+        }
+        type();
+    });
+
+    // 4. MODAL LOGIC
+    const Modal = (() => {
+        const back = document.getElementById('modal-backdrop'), title = document.getElementById('modal-title'), body = document.getElementById('modal-body'), close = document.getElementById('modal-close');
+        const toggle = (state) => { back.classList.toggle('open', state); document.body.classList.toggle('modal-open', state); };
+        close.onclick = () => toggle(false); back.onclick = (e) => { if(e.target === back) toggle(false); };
+        return { open: (t, html) => { title.innerText = t; body.innerHTML = html; toggle(true); } };
+    })();
+
+    // 5. BUTTON HANDLER: ABOUT (UPDATED - CLEAN BUTTONS)
+    document.getElementById('btn-about').onclick = (e) => {
+        e.preventDefault();
+        
+        const paypalEmail = "praycher@gmail.com";
+        const gcashNumber = "09161469193";
+        const paypalQR = "https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=" + encodeURIComponent("https://www.paypal.com/donate/?business=" + paypalEmail);
+        const gcashQR = "https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=" + encodeURIComponent(gcashNumber);
+
+        // STYLES FOR THE COPY BUTTON
+        const btnStyle = "width:100%; padding:8px; background:white; border:1px solid #ccc; border-radius:8px; cursor:pointer; color:#555; display:flex; align-items:center; justify-content:center; gap:8px; font-size:0.8rem; transition:0.2s; font-family:'Inter', sans-serif; font-weight:500;";
+        const hover = "this.style.background='#f3f4f6'";
+        const out = "this.style.background='white'";
+
+        Modal.open('About Ministify', 
+            `
+            <div style="text-align:left; margin-bottom:25px; color:#555; font-size:0.9rem; line-height:1.6;">
+                <p style="margin-bottom:10px;"><strong>Ministify</strong> is mainly a source of free, ministry-focused web apps designed to amplify your service. From study tools to administrative helpers, we build privacy-focused, browser-based apps to help you concentrate on what matters most.</p>
+                <center><p style="font-size:0.85rem; font-style:italic; color:#00a0a0; margin-bottom:15px;">Keep these tools free. Donate now.</p>
+            </div></center>
+
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px;">
+                <div style="background:#f9fafb; padding:15px; border-radius:12px; display:flex; flex-direction:column; align-items:center;">
+                    <img src="${paypalQR}" alt="PayPal" style="width:100px; height:100px; mix-blend-mode:multiply; margin-bottom:10px;">
+                    <div style="font-size:0.9rem; font-weight:bold; color:#003087; margin-bottom:10px;"><i class="fab fa-paypal"></i> PayPal</div>
+                    
+                    <button onclick="copyToClipboard('${paypalEmail}', this)" style="${btnStyle}" onmouseover="${hover}" onmouseout="${out}">
+                        <i class="far fa-copy"></i> <span>Copy</span>
+                    </button>
+                </div>
+
+                <div style="background:#f9fafb; padding:15px; border-radius:12px; display:flex; flex-direction:column; align-items:center;">
+                    <img src="${gcashQR}" alt="GCash" style="width:100px; height:100px; mix-blend-mode:multiply; margin-bottom:10px;">
+                    <div style="font-size:0.9rem; font-weight:bold; color:#007bff; margin-bottom:10px;"><i class="fas fa-mobile-alt"></i> GCash</div>
+                    
+                    <button onclick="copyToClipboard('${gcashNumber}', this)" style="${btnStyle}" onmouseover="${hover}" onmouseout="${out}">
+                        <i class="far fa-copy"></i> <span>Copy</span>
+                    </button>
+                </div>
+            </div>
+            `
+        );
+    };
+
+    // 6. BUTTON HANDLER: CONTACT
+    document.getElementById('btn-contact').onclick = (e) => {
+        e.preventDefault();
+        Modal.open('Contact Us', 
+            `<p style="color:#666; margin-bottom:20px;">Have questions or feature requests? We're just a tap away.</p>
+             <div style="display:flex; flex-wrap:wrap; justify-content:center; gap:15px; margin-top:10px;">
+                <a href="tel:+639161469193" style="display:flex; align-items:center; justify-content:center; width:60px; height:60px; background:#f0f9ff; border-radius:50%; color:#00a0a0; font-size:1.5rem; text-decoration:none; transition:0.2s; box-shadow:0 5px 15px rgba(0,0,0,0.05);" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
+                    <i class="fas fa-phone-alt"></i>
+                </a>
+                <a href="mailto:ministify@gmail.com" style="display:flex; align-items:center; justify-content:center; width:60px; height:60px; background:#f0f9ff; border-radius:50%; color:#00a0a0; font-size:1.5rem; text-decoration:none; transition:0.2s; box-shadow:0 5px 15px rgba(0,0,0,0.05);" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
+                    <i class="fas fa-envelope"></i>
+                </a>
+                <a href="https://m.me/104348560908505" target="_blank" style="display:flex; align-items:center; justify-content:center; width:60px; height:60px; background:#f0f9ff; border-radius:50%; color:#0084FF; font-size:1.5rem; text-decoration:none; transition:0.2s; box-shadow:0 5px 15px rgba(0,0,0,0.05);" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
+                    <i class="fab fa-facebook-messenger"></i>
+                </a>
+                <a href="https://wa.me/639957522922" target="_blank" style="display:flex; align-items:center; justify-content:center; width:60px; height:60px; background:#f0f9ff; border-radius:50%; color:#25D366; font-size:1.7rem; text-decoration:none; transition:0.2s; box-shadow:0 5px 15px rgba(0,0,0,0.05);" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
+                    <i class="fab fa-whatsapp"></i>
+                </a>
+             </div>`
+        );
+    };
+</script>
+</body>
+</html>
