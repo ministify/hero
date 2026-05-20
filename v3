@@ -1,0 +1,1218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ministify - Digital Operations Hub</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    
+    <!-- OPTIMIZATION: Preload FontAwesome Webfont to prevent icon pop-in delay -->
+    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/webfonts/fa-solid-900.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;900&family=Playfair+Display:ital,wght@0,700;1,400&family=Inter:wght@400;500;600;700;800;900&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        /* --- 1. SETTINGS & VARIABLES (COOL/TEAL THEME) --- */
+        :root {
+            --primary-hero: #008080;
+            --bg-start: #ffffff; /* Light mint/teal tint */
+            --bg-end: #ffffff;  
+            --text-main: #0f172a; 
+            
+            /* Cool Theme Substitutions */
+            --cool-primary: #0891b2; /* Cyan 600 */
+            --cool-success: #0d9488; /* Teal 600 */
+        }
+
+        /* --- 2. GLOBAL RESET & NEURAL BACKGROUND --- */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, var(--bg-start), var(--bg-end));
+            color: var(--text-main);
+            min-height: 100vh;
+            padding: 40px 20px; 
+            overflow-x: hidden; 
+        }
+
+        /* --- NEURAL CONSTELLATION STYLES --- */
+        #particle-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        #constellation-svg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .atom {
+            position: absolute;
+            width: 5px; 
+            height: 5px;
+            background-color: var(--cool-primary); 
+            border-radius: 50%;
+            box-shadow: 0 0 10px rgba(8, 145, 178, 0.8);
+            margin-top: -2.5px;
+            margin-left: -2.5px;
+            will-change: transform;
+        }
+
+        .connection {
+            stroke: var(--cool-primary);
+            stroke-width: 1px;
+            opacity: 0;
+            will-change: opacity, x1, y1, x2, y2;
+        }
+
+        /* --- 3. CENTERED LAYOUT WRAPPER --- */
+        .ministify-wrapper {
+            position: relative;
+            z-index: 10;
+            width: 100%;
+            max-width: 1100px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        /* HEADER / HERO SECTION */
+        .dashboard-header {
+            padding: 20px 0 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+        
+        .hero-headline {
+            font-size: clamp(2rem, 4vw, 3.5rem);
+            font-weight: 900;
+            color: #0f172a;
+            line-height: 1.15;
+            margin-bottom: 15px;
+            letter-spacing: -1px;
+        }
+
+        .gradient-text {
+            background: linear-gradient(90deg, #06b6d4, #10b981);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: inline-block;
+        }
+
+        .hero-subtext {
+            font-size: 1rem;
+            color: #475569;
+            max-width: 750px;
+            margin: 0 auto 25px;
+            line-height: 1.6;
+            font-weight: 400;
+        }
+
+        .header-actions { display: flex; gap: 12px; justify-content: center; }
+        .action-btn {
+            text-decoration: none; padding: 12px 28px; border-radius: 8px;
+            font-weight: 600; transition: all 0.2s; font-size: 0.95rem;
+            display: flex; align-items: center; gap: 8px; cursor: pointer;
+        }
+        .btn-primary { background: var(--primary-hero); color: #ffffff; border: 1px solid var(--primary-hero); box-shadow: 0 4px 6px rgba(0, 128, 128, 0.2); }
+        .btn-secondary { background: #ffffff; color: var(--text-main); border: 1px solid #cbd5e1; }
+        .action-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 15px rgba(0,0,0,0.08); }
+        .btn-secondary:hover { border-color: var(--primary-hero); color: var(--primary-hero); }
+
+        /* BODY SECTION */
+        .dashboard-body {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        .widget-panel {
+            background: #ffffff;
+            border: 1px solid #ccfbf1;
+            border-radius: 16px;
+            padding: 55px 20px 30px 20px; 
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            position: relative;
+            box-shadow: 0 10px 25px -5px rgba(13, 148, 136, 0.1);
+            min-height: 350px;
+            overflow: hidden; 
+        }
+        
+        .widget-title {
+            position: absolute; 
+            top: 20px; 
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.8rem; 
+            font-weight: 800; 
+            text-transform: uppercase;
+            color: #5eead4;
+            letter-spacing: 4px;
+            user-select: none;
+            white-space: nowrap;
+            z-index: 10;
+        }
+
+        /* --- LOADER STYLES --- */
+        .widget-loader {
+            position: absolute;
+            inset: 0;
+            background: #ffffff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 200;
+            transition: opacity 0.5s ease, visibility 0.5s ease;
+        }
+        .widget-loader.hidden { opacity: 0; visibility: hidden; }
+        .spinner {
+            width: 36px; height: 36px; border: 3px solid #f1f5f9;
+            border-top-color: var(--cool-primary);
+            border-radius: 50%; animation: loader-spin 0.8s linear infinite;
+        }
+        .loader-text {
+            margin-top: 12px; font-size: 0.75rem; font-weight: 700;
+            color: #94a3b8; letter-spacing: 2px; text-transform: uppercase;
+            animation: pulse-text 1.5s ease-in-out infinite;
+        }
+        @keyframes loader-spin { 100% { transform: rotate(360deg); } }
+        @keyframes pulse-text { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
+
+        /* --- 4. MINIATURIZED ORBIT WIDGET --- */
+        #orbit-wrapper {
+            position: relative; width: 220px; height: 220px; margin-top: 15px;
+            border-radius: 50%; border: none; 
+            display: flex; align-items: center; justify-content: center;
+            transform-style: preserve-3d; transition: transform 0.4s ease;
+        }
+        #orbit-wrapper:hover .orbit-ring, #orbit-wrapper:hover .app-icon { animation-play-state: paused; }
+
+        .orbit-ring { position: absolute; width: 0; height: 0; animation: spin 60s linear infinite; z-index: 5; }
+        .orbit-ring.paused { animation-play-state: paused !important; }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+
+        .spoke { position: absolute; top: 0; left: 0; width: 40px; height: 40px; margin: -20px 0 0 -20px; }
+        .spoke:nth-child(1) { transform: rotate(0deg)   translate(75px) rotate(0deg); }
+        .spoke:nth-child(2) { transform: rotate(60deg)  translate(75px) rotate(-60deg); }
+        .spoke:nth-child(3) { transform: rotate(120deg) translate(75px) rotate(-120deg); }
+        .spoke:nth-child(4) { transform: rotate(180deg) translate(75px) rotate(-180deg); }
+        .spoke:nth-child(5) { transform: rotate(240deg) translate(75px) rotate(-240deg); }
+        .spoke:nth-child(6) { transform: rotate(300deg) translate(75px) rotate(-300deg); }
+
+        .app-icon {
+            width: 100%; height: 100%; border-radius: 50%; background: white;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1); cursor: pointer; border: 2px solid white;
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            animation: counter-spin 60s linear infinite;
+        }
+        .orbit-ring.paused .app-icon { animation-play-state: paused !important; }
+        @keyframes counter-spin { 100% { transform: rotate(-360deg); } }
+        .app-icon:hover { transform: scale(1.2); z-index: 100; box-shadow: 0 6px 15px rgba(13, 148, 136, 0.3); }
+        .app-icon i { font-size: 15px; color: white; }
+
+        /* COOL/TEAL THEME COLORS FOR ORBIT CLASSES */
+        .c1 { background: linear-gradient(135deg, #06b6d4, #0891b2); } 
+        .c2 { background: linear-gradient(135deg, #14b8a6, #0f766e); } 
+        .c3 { background: linear-gradient(135deg, #10b981, #059669); } 
+        .c4 { background: linear-gradient(135deg, #0ea5e9, #0284c7); } 
+        .c5 { background: linear-gradient(135deg, #20b2aa, #008080); } 
+        .c6 { background: linear-gradient(135deg, #008b8b, #006666); } 
+
+        .hub {
+            width: 70px; height: 70px; background: white; border-radius: 50%; position: absolute; z-index: 1;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            box-shadow: 0 0 15px rgba(8, 145, 178, 0.15); border: 3px solid #f0fdfa;
+        }
+        .hub h1 { margin:0; font-size: 10px; font-weight:800; color:#0f172a; }
+        .hub span { font-size: 6px; text-transform:uppercase; letter-spacing:1px; color:var(--cool-primary); margin-top:2px; font-weight: 600;}
+
+        /* --- SHARED ACCORDION STYLES --- */
+        .widget-accordion {
+            max-height: 0; overflow: hidden; opacity: 0;
+            transition: max-height 0.4s ease, opacity 0.3s ease, margin 0.3s ease;
+            width: 100%; border-radius: 12px;
+            position: relative; z-index: 10;
+        }
+        .widget-accordion.open { max-height: 500px; opacity: 1; margin-top: 20px; }
+        .widget-accordion .accordion-inner { 
+            padding: 25px; text-align: left; background: #f8fafc; 
+            border: 1px solid #e2e8f0; border-radius: 12px; 
+            position: relative; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
+        }
+
+        .acc-close {
+            position: absolute; top: 15px; right: 15px; font-size: 1.4rem; cursor: pointer;
+            color: #64748b; border: none; background: #f1f5f9; transition: 0.2s; line-height: 1;
+            width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; z-index: 10;
+        }
+        .acc-close:hover { color: #0f172a; transform: rotate(90deg); background: #e2e8f0; }
+
+        .modal-color-bar { height: 4px; width: 50px; border-radius: 2px; margin-bottom: 12px; }
+        .modal-title { font-size: 1.3rem; font-weight: 800; margin: 0 0 12px; color: #0f172a; padding-right: 35px; line-height: 1.2;}
+        .modal-body { color: #475569; font-size: 0.85rem; line-height: 1.5; }
+
+        .rich-list { list-style: none; padding: 0; margin: 0; }
+        .rich-list li { position: relative; padding-left: 20px; margin-bottom: 8px; font-size: 0.85rem; color: #475569; line-height: 1.5; }
+        .rich-list li::before { content: '→'; position: absolute; left: 0; top: 0; color: var(--cool-primary); font-weight: bold; }
+
+        /* --- 5. GLOBAL MAIN MODALS --- */
+        .main-modal-wrapper {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px);
+            z-index: 9999; display: flex; align-items: center; justify-content: center;
+            opacity: 0; pointer-events: none; transition: opacity 0.3s ease; padding: 20px;
+        }
+        .main-modal-wrapper.active { opacity: 1; pointer-events: auto; }
+        .main-modal-box {
+            background: #ffffff; width: 100%; max-width: 550px; border-radius: 20px;
+            padding: 40px; position: relative; transform: translateY(30px); transition: transform 0.4s ease, max-width 0.4s ease;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); text-align: left;
+            max-height: 90vh; overflow-y: auto;
+        }
+        .main-modal-box.wide { max-width: 850px; }
+        
+        .main-modal-wrapper.active .main-modal-box { transform: translateY(0); }
+        .main-modal-close-btn {
+            position: absolute; top: 20px; right: 20px; background: #f1f5f9; border: none;
+            width: 36px; height: 36px; border-radius: 50%; cursor: pointer; color: #64748b;
+            display: flex; align-items: center; justify-content: center; transition: 0.2s; z-index: 50;
+        }
+        .main-modal-close-btn:hover { background: #e2e8f0; color: #0f172a; transform: rotate(90deg); }
+
+        /* --- MODAL CALCULATOR STYLES --- */
+        .calc-nav { display: flex; flex-wrap: wrap; border-bottom: 1px solid #e2e8f0; margin-bottom: 20px; margin-top: 10px; }
+        .calc-tab { flex: 1; padding: 12px; cursor: pointer; font-weight: 600; font-size: 0.95rem; color: #64748b; text-align: center; border-bottom: 3px solid transparent; transition: all 0.2s; }
+        .calc-tab:hover { color: #0f172a; background: #f8fafc; }
+        .calc-tab.active { color: var(--cool-primary); border-bottom-color: var(--cool-primary); background: transparent; }
+        
+        .calc-panel { display: none; animation: fadeIn 0.4s ease forwards; }
+        .calc-panel.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .calculator-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 350px), 1fr)); gap: 40px; align-items: start; }
+        
+        .slider-group { margin-bottom: 1.8rem; }
+        .slider-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; font-weight: 600; font-size: 0.95rem; color: #334155;}
+        .slider-val { color: var(--cool-primary); font-size: 1.1rem; font-family: 'Roboto Mono', monospace; font-weight: 700; white-space: nowrap;}
+        
+        .modal-calc input[type=range] { width: 100%; accent-color: var(--cool-primary); cursor: pointer; height: 6px; border-radius: 3px; background: #e2e8f0; outline: none; margin-top: 5px; }
+        .modal-calc select { width: 100%; padding: 0.6rem 1rem; font-size: 0.95rem; font-family: inherit; border: 1px solid #cbd5e1; border-radius: 8px; background-color: #f8fafc; color: #0f172a; cursor: pointer; outline: none; margin-top: 5px;}
+        .modal-calc select:focus { border-color: var(--cool-primary); box-shadow: 0 0 0 2px rgba(8, 145, 178, 0.2); }
+        .slider-helper { font-size: 0.8rem; color: #64748b; margin-top: 0.5rem; line-height: 1.4; }
+
+        .results-panel h3 { margin-bottom: 1.2rem; font-size: 1.1rem; padding-bottom: 0.8rem; border-bottom: 1px solid #e2e8f0; color: #0f172a;}
+        .breakdown-row { display: flex; justify-content: space-between; margin-bottom: 0.8rem; font-size: 0.9rem; color: #475569; font-family: 'Roboto Mono', monospace; gap: 1rem;}
+        .breakdown-row span:last-child { color: #0f172a; font-weight: 600; text-align: right;}
+        
+        .total-row { display: flex; justify-content: space-between; align-items: center; margin-top: 1.5rem; padding-top: 1.5rem; border-top: 2px dashed #cbd5e1; gap: 1rem; flex-wrap: wrap;}
+        .total-row .label { font-size: 1.1rem; font-weight: 800; color: #0f172a;}
+        .savings-amount { font-size: 2.2rem; font-weight: 800; color: var(--cool-success); font-family: 'Roboto Mono', monospace; letter-spacing: -1px;}
+        .quote-amount { color: var(--cool-primary); } 
+
+        .widget-cta { width: 100%; margin-top: 2rem; padding: 1rem; background: var(--cool-primary); color: #ffffff; border: none; border-radius: 8px; font-size: 0.95rem; font-weight: 700; cursor: pointer; transition: 0.2s; text-transform: uppercase; letter-spacing: 1px; box-shadow: 0 4px 6px rgba(8, 145, 178, 0.2); }
+        .widget-cta:hover { background: #06b6d4; transform: translateY(-2px); box-shadow: 0 6px 12px rgba(8, 145, 178, 0.3);}
+
+        /* --- 6. RESPONSIVE --- */
+        @media (max-width: 900px) {
+            .dashboard-body { grid-template-columns: 1fr; }
+            .header-actions { width: 100%; flex-wrap: wrap; }
+            .action-btn { flex: 1; justify-content: center; min-width: 140px;}
+            .widget-panel { padding: 50px 20px 30px 20px; } 
+        }
+        @media (max-width: 600px) {
+            .main-modal-box { padding: 30px 20px; }
+            .total-row { flex-direction: column; align-items: flex-start; }
+            .calc-tab { font-size: 0.85rem; padding: 10px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- NEURAL CONSTELLATION BACKGROUND CONTAINER -->
+    <div id="particle-container"></div>
+
+    <!-- WRAPPER -->
+    <div class="ministify-wrapper">
+        
+        <!-- HEADER -->
+        <header class="dashboard-header">
+            <h1 class="hero-headline">AI-centric <br><span class="gradient-text">Tech Stack</span></h1>
+            <p class="hero-subtext">Ministify liberates organizations from expensive licenses and locked-down hardware. We help to set-up a unified ecosystem powered by Google's web-based Infrastructure, Linux Systems, and Agentic AI models.</p>
+            
+            <div class="header-actions">
+                <button id="btn-quote" class="action-btn btn-primary"><i class="fas fa-calculator"></i> Quote</button>
+                <button id="btn-contact" class="action-btn btn-secondary"><i class="fas fa-paper-plane"></i> Contact</button>
+            </div>
+        </header>
+
+        <!-- BODY / WIDGET PANELS -->
+        <main class="dashboard-body">
+            
+            <!-- PANEL 1: DECK CAROUSEL -->
+            <div class="widget-panel">
+                <div class="widget-loader">
+                    <div class="spinner"></div>
+                    <div class="loader-text">Loading</div>
+                </div>
+
+                <div class="widget-title">ENTERPRISE</div>
+                <ministify-ecosystem-deck></ministify-ecosystem-deck>
+            </div>
+
+            <!-- PANEL 2: ORBIT NAVIGATOR -->
+            <div class="widget-panel">
+                <div class="widget-loader">
+                    <div class="spinner"></div>
+                    <div class="loader-text">Loading</div>
+                </div>
+
+                <div class="widget-title">EXPERTISE</div>
+                
+                <div id="orbit-wrapper">
+                    <div class="hub">
+                        <h1>MINISTIFY</h1>
+                        <span>CORE</span>
+                    </div>
+                    <div class="orbit-ring" id="ring">
+                        <div class="spoke"><div class="app-icon c1" onclick="Orbit.open('apps')"><i class="fa-solid fa-laptop-code"></i></div></div>
+                        <div class="spoke"><div class="app-icon c2" onclick="Orbit.open('ai')"><i class="fa-solid fa-robot"></i></div></div>
+                        <div class="spoke"><div class="app-icon c3" onclick="Orbit.open('courses')"><i class="fa-solid fa-graduation-cap"></i></div></div>
+                        <div class="spoke"><div class="app-icon c4" onclick="Orbit.open('webdev')"><i class="fa-solid fa-server"></i></div></div>
+                        <div class="spoke"><div class="app-icon c5" onclick="Orbit.open('support')"><i class="fa-solid fa-shield-halved"></i></div></div>
+                        <div class="spoke"><div class="app-icon c6" onclick="Orbit.open('evangelism')"><i class="fa-solid fa-chart-line"></i></div></div>
+                    </div>
+                </div>
+
+                <!-- Orbit Accordion -->
+                <div id="orbit-accordion" class="widget-accordion">
+                    <div class="accordion-inner" id="orbit-acc-content"></div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- GLOBAL MAIN MODALS -->
+    <div id="main-modal" class="main-modal-wrapper">
+        <div class="main-modal-box">
+            <button id="main-modal-close" class="main-modal-close-btn">
+                <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" fill="none" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
+            </button>
+            <div id="main-modal-content"></div>
+        </div>
+    </div>
+
+<script>
+    // --- 0. ECOSYSTEM DECK WEB COMPONENT (Inserted & Updated with Cool Colors and 6 Cards) ---
+    class MinistifyEcosystemDeck extends HTMLElement {
+        constructor() {
+            super();
+            this.attachShadow({ mode: 'open' });
+            const template = document.createElement('template');
+            template.innerHTML = `
+                <style>
+                    :host { display: block; width: 100%; box-sizing: border-box; }
+                    * { box-sizing: border-box; }
+                    
+                    #ecosystem-deck-component {
+                        display: flex; flex-direction: column; align-items: center;
+                        font-family: "Inter", sans-serif; width: 100%; position: relative;
+                        margin-top: 15px; 
+                    }
+                    
+                    #deck-container {
+                        width: 220px; height: 160px; position: relative;
+                        perspective: 1000px; margin: 0 auto; transform-style: preserve-3d; z-index: 20;
+                    }
+                    #deck {
+                        width: 100%; height: 100%; position: absolute;
+                        transform-style: preserve-3d; transition: transform 0.6s cubic-bezier(0.76, 0, 0.24, 1);
+                    }
+                    .deck-card {
+                        position: absolute; width: 130px; height: 140px; 
+                        left: 45px; 
+                        top: 10px;
+                        cursor: grab; transform: rotateY(var(--rotY)) translateZ(var(--transZ));
+                        transform-style: preserve-3d; -webkit-box-reflect: below 1px linear-gradient(transparent, transparent, rgba(0,0,0,0.1));
+                    }
+                    .card-content {
+                        width: 100%; height: 100%; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.3);
+                        color: #ffffff; display: flex; flex-direction: column; align-items: center; justify-content: center;
+                        text-align: center; padding: 12px 10px; 
+                        backface-visibility: hidden; transition: transform 0.3s ease;
+                        box-shadow: 0 8px 16px -4px rgba(0, 0, 0, 0.2), inset 0 2px 4px rgba(255, 255, 255, 0.2);
+                    }
+                    .deck-card:hover .card-content { 
+                        transform: translateZ(25px) scale(1.05); border-color: #ffffff; 
+                        box-shadow: 0 12px 24px -5px rgba(0, 0, 0, 0.3);
+                    }
+                    
+                    .card-icon svg { width: 24px; height: 24px; stroke: currentColor; stroke-width: 2.5; fill: none; margin-bottom: 6px; filter: drop-shadow(0 2px 2px rgba(0,0,0,0.3)); }
+                    
+                    .deck-card-title { font-size: 13px; font-weight: 800; margin-bottom: 4px; text-shadow: 0 2px 4px rgba(0,0,0,0.4); line-height: 1.1; }
+                    .deck-card-desc { font-size: 10px; font-weight: 500; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; text-shadow: 0 1px 2px rgba(0,0,0,0.4); opacity: 0.9; }
+                    
+                    .action-btn {
+                        background: var(--btn-bg, #0891b2); color: #fff; padding: 8px 20px;
+                        border-radius: 20px; border: none; font-size: 12px; font-weight: 700;
+                        text-transform: uppercase; cursor: pointer; margin-top: 25px; transition: all 0.2s;
+                        letter-spacing: 0.5px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.15);
+                    }
+                    .action-btn:hover { transform: translateY(-2px); filter: brightness(1.1); box-shadow: 0 6px 12px -2px rgba(0,0,0,0.2); }
+                    
+                    #deck-nav { display: flex; justify-content: center; gap: 12px; margin-top: 12px; pointer-events: none; }
+                    .nav-btn {
+                        background: #fff; color: #64748b; border: none; border-radius: 50%;
+                        width: 34px; height: 34px; cursor: pointer; pointer-events: auto;
+                        box-shadow: 0 2px 4px rgba(0,0,0,0.05), inset 0 0 0 1px #e2e8f0;
+                        display: flex; align-items: center; justify-content: center; transition: 0.2s;
+                    }
+                    .nav-btn:hover { background: #0f172a; color: #fff; inset 0 0 0 1px #0f172a;}
+                    
+                    .widget-accordion {
+                        max-height: 0; overflow: hidden; opacity: 0;
+                        transition: max-height 0.4s ease, opacity 0.3s ease, margin 0.3s ease;
+                        width: 100%; border-radius: 12px;
+                        position: relative; z-index: 10;
+                    }
+                    .widget-accordion.open { max-height: 500px; opacity: 1; margin-top: 20px; }
+                    .accordion-inner {
+                        background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 25px; text-align: left; position: relative;
+                        box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
+                    }
+                    
+                    .acc-close {
+                        position: absolute; top: 15px; right: 15px; font-size: 1.4rem; cursor: pointer;
+                        color: #64748b; border: none; background: #f1f5f9; transition: 0.2s; line-height: 1;
+                        width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; z-index: 10;
+                    }
+                    .acc-close:hover { color: #0f172a; transform: rotate(90deg); background: #e2e8f0; }
+                    
+                    .modal-color-bar { height: 4px; width: 50px; border-radius: 2px; margin-bottom: 12px; background: var(--btn-bg); }
+                    .modal-title { font-size: 1.3rem; font-weight: 800; margin: 0 0 12px; color: #0f172a; padding-right: 35px; line-height: 1.2;}
+                    .modal-body { color: #475569; font-size: 0.85rem; line-height: 1.5;}
+                    
+                    .rich-list { list-style: none; padding: 0; margin: 0; }
+                    .rich-list li { position: relative; padding-left: 20px; margin-bottom: 8px; font-size: 0.85rem; color: #475569; line-height: 1.5; }
+                    .rich-list li::before { content: '→'; position: absolute; left: 0; top: 0; color: #0891b2; font-weight: bold; }
+                </style>
+                
+                <div id="ecosystem-deck-component">
+                    <div id="deck-container"><div id="deck"></div></div>
+                    <button id="action-btn" class="action-btn">More Details</button>
+                    <div id="deck-nav">
+                        <button id="prev-card" class="nav-btn"><svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" fill="none" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg></button>
+                        <button id="next-card" class="nav-btn"><svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" fill="none" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg></button>
+                    </div>
+
+                    <div id="deck-accordion" class="widget-accordion">
+                        <div class="accordion-inner">
+                            <button id="modal-close" class="acc-close">&times;</button>
+                            <div id="modal-color-bar" class="modal-color-bar"></div>
+                            <h3 id="modal-title" class="modal-title"></h3>
+                            <div id="modal-body" class="modal-body"></div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            this.shadowRoot.appendChild(template.content.cloneNode(true));
+            this.currentStep = 0; 
+            this.autoplayInterval = null;
+            
+            this.cardData = [
+                { 
+                    title: "Google Infra", shortDesc: "Cloud backbone & apps.", modalTitle: "Google Infrastructure", 
+                    modalBody: "<ul class='rich-list'><li>Centralized management via Google Workspace Admin console.</li><li>Structured Google Drive organizational architectures.</li><li>Deployment and oversight of Google Cloud Platform (GCP) resources.</li></ul>", 
+                    icon: '<path d="M17.5 19.25a7.5 7.5 0 0 0 0-14.5m-11 14.5a7.5 7.5 0 0 1 0-14.5m5.5 0v14.5"/>' 
+                },
+                { 
+                    title: "Secure OS", shortDesc: "Hardware lifecycle extension.", modalTitle: "Secure Operating Systems", 
+                    modalBody: "<ul class='rich-list'><li>Endpoint security utilizing strict ChromeOS Flex protocols.</li><li>Custom Ubuntu/Debian deployments for internal servers.</li><li>Extension of physical hardware lifecycles to reduce capital waste.</li></ul>", 
+                    icon: '<rect x="2" y="3" width="20" height="14" rx="2"/><line x1="2" y1="20" x2="22" y2="20"/>' 
+                },
+                { 
+                    title: "AI Adoption", shortDesc: "Integration & Implementation.", modalTitle: "AI Implementation", 
+                    modalBody: "<ul class='rich-list'><li>Execution of Llama and DeepSeek models locally for sensitive parsing.</li><li>Enterprise API integration for scalable AI workflows.</li><li>Strict data sovereignty protocols to prevent third-party scraping.</li></ul>", 
+                    icon: '<path d="M12 2a10 10 0 1 0 10 10H12V2zM21.18 8.02A10 10 0 0 0 12 2v10l9.18-3.98z"/><path d="M12 12l9.18 3.98A10 10 0 0 1 12 22V12z"/>' 
+                },
+                { 
+                    title: "Web Apps", shortDesc: "Offline-first proprietary tools.", modalTitle: "Web Services & Apps", 
+                    modalBody: "<ul class='rich-list'><li>Development of proprietary internal dashboards and hubs.</li><li>Offline-first data persistence relying on browser IndexedDB caching.</li><li>Responsive PWA deployment ensuring mobile readiness.</li></ul>", 
+                    icon: '<circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>' 
+                },
+                { 
+                    title: "Broadcast", shortDesc: "OBS pipelines/secure routing.", modalTitle: "Media & Comms", 
+                    modalBody: "<ul class='rich-list'><li>Configuration of studio-grade OBS streaming profiles.</li><li>Deployment of internal Internet Radio servers (Icecast).</li><li>Complex audio routing for multi-input organizational events.</li></ul>", 
+                    icon: '<circle cx="12" cy="12" r="2"/><path d="M16.24 7.76a6 6 0 0 1 0 8.49m-8.48 0a6 6 0 0 1 0-8.49m11.31-2.82a10 10 0 0 1 0 14.14m-14.14 0a10 10 0 0 1 0-14.14"/>' 
+                },
+                { 
+                    title: "Knowledge", shortDesc: "Internal wikis & guides.", modalTitle: "Organizational Logic", 
+                    modalBody: "<ul class='rich-list'><li>Implementation of internal Wikis for procedural documentation.</li><li>Structured curriculum drafting for new team member onboarding.</li><li>Generation of comprehensive, closed-access staff manuals.</li></ul>", 
+                    icon: '<path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/>' 
+                }
+            ];
+            
+            this.cardStyles = [
+                { primary: '#0891b2', gradient: 'linear-gradient(135deg, #06b6d4, #0891b2)' }, 
+                { primary: '#0f766e', gradient: 'linear-gradient(135deg, #14b8a6, #0f766e)' }, 
+                { primary: '#0284c7', gradient: 'linear-gradient(135deg, #0ea5e9, #0284c7)' }, 
+                { primary: '#059669', gradient: 'linear-gradient(135deg, #10b981, #059669)' }, 
+                { primary: '#008080', gradient: 'linear-gradient(135deg, #20b2aa, #008080)' }, 
+                { primary: '#006666', gradient: 'linear-gradient(135deg, #008b8b, #006666)' }  
+            ];
+            
+            this.angle = 360 / this.cardData.length; 
+            this.radius = 140; 
+        }
+
+        connectedCallback() {
+            this.deck = this.shadowRoot.querySelector('#deck');
+            this.accWrap = this.shadowRoot.querySelector('#deck-accordion');
+            this.componentWrap = this.shadowRoot.querySelector('#ecosystem-deck-component');
+            
+            this.shadowRoot.querySelector('#next-card').onclick = () => this.navigate('next');
+            this.shadowRoot.querySelector('#prev-card').onclick = () => this.navigate('prev');
+            this.shadowRoot.querySelector('#action-btn').onclick = () => this.toggleAccordion();
+            
+            this.shadowRoot.querySelector('#modal-close').onclick = () => {
+                this.accWrap.classList.remove('open');
+                this.startAutoplay();
+            };
+            
+            let touchStartX = 0;
+            this.deck.addEventListener('touchstart', (e) => { 
+                touchStartX = e.touches[0].clientX; 
+                this.stopAutoplay();
+            }, {passive: true});
+            
+            this.deck.addEventListener('touchend', (e) => {
+                let touchEndX = e.changedTouches[0].clientX;
+                if (Math.abs(touchEndX - touchStartX) > 20) {
+                    if (touchEndX < touchStartX - 30) this.navigate('next'); 
+                    if (touchEndX > touchStartX + 30) this.navigate('prev'); 
+                }
+                if(!this.accWrap.classList.contains('open')) {
+                    this.startAutoplay();
+                }
+            });
+
+            this.componentWrap.addEventListener('mouseenter', () => this.stopAutoplay());
+            this.componentWrap.addEventListener('mouseleave', () => {
+                if(!this.accWrap.classList.contains('open')) {
+                    this.startAutoplay();
+                }
+            });
+            
+            this.createCards();
+            this.updateScene();
+            this.startAutoplay();
+        }
+
+        disconnectedCallback() {
+            this.stopAutoplay();
+        }
+
+        startAutoplay() {
+            if (!this.autoplayInterval) {
+                this.autoplayInterval = setInterval(() => this.navigate('next'), 5000);
+            }
+        }
+
+        stopAutoplay() {
+            if (this.autoplayInterval) {
+                clearInterval(this.autoplayInterval);
+                this.autoplayInterval = null;
+            }
+        }
+
+        resetAutoplay() {
+            this.stopAutoplay();
+            if(!this.accWrap.classList.contains('open')) {
+                this.startAutoplay();
+            }
+        }
+
+        createCards() {
+            this.deck.innerHTML = '';
+            this.cardData.forEach((card, i) => {
+                const cardEl = document.createElement('div');
+                cardEl.className = 'deck-card';
+                cardEl.style.setProperty('--rotY', `${this.angle * i}deg`);
+                cardEl.style.setProperty('--transZ', `${this.radius}px`);
+                cardEl.innerHTML = `
+                    <div class="card-content" style="background: ${this.cardStyles[i].gradient}">
+                        <div class="card-icon"><svg viewBox="0 0 24 24">${card.icon}</svg></div>
+                        <div class="deck-card-title">${card.title}</div>
+                        <div class="deck-card-desc">${card.shortDesc}</div>
+                    </div>`;
+                this.deck.appendChild(cardEl);
+            });
+        }
+
+        updateScene() {
+            this.deck.style.transform = `translateZ(-${this.radius}px) rotateY(${this.currentStep * -this.angle}deg)`;
+            const count = this.cardData.length;
+            this.activeIndex = ((this.currentStep % count) + count) % count;
+            
+            this.shadowRoot.querySelector('#action-btn').style.setProperty('--btn-bg', this.cardStyles[this.activeIndex].primary);
+            
+            const cards = this.shadowRoot.querySelectorAll('.deck-card');
+            cards.forEach((card, i) => {
+                let diff = Math.abs(i - this.activeIndex);
+                if (diff > count / 2) diff = count - diff;
+                card.style.zIndex = 100 - diff;
+                
+                if (diff > 1 && count > 3) { 
+                    card.style.pointerEvents = 'none'; card.style.setProperty('-webkit-box-reflect', 'none');
+                } else { 
+                    card.style.pointerEvents = 'auto'; card.style.setProperty('-webkit-box-reflect', 'below 1px linear-gradient(transparent, transparent, rgba(0,0,0,0.1))');
+                }
+            });
+
+            if(this.accWrap.classList.contains('open')) {
+                const data = this.cardData[this.activeIndex];
+                this.shadowRoot.querySelector('#modal-title').textContent = data.modalTitle;
+                this.shadowRoot.querySelector('#modal-body').innerHTML = data.modalBody; 
+                this.shadowRoot.querySelector('#modal-color-bar').style.background = this.cardStyles[this.activeIndex].gradient;
+            }
+        }
+
+        navigate(dir) { 
+            dir === 'next' ? this.currentStep++ : this.currentStep--; 
+            this.updateScene(); 
+            this.resetAutoplay();
+        }
+
+        toggleAccordion() {
+            if(this.accWrap.classList.contains('open')) {
+                this.accWrap.classList.remove('open');
+                this.startAutoplay();
+            } else {
+                this.stopAutoplay();
+                const data = this.cardData[this.activeIndex];
+                this.shadowRoot.querySelector('#modal-title').textContent = data.modalTitle;
+                this.shadowRoot.querySelector('#modal-body').innerHTML = data.modalBody; 
+                this.shadowRoot.querySelector('#modal-color-bar').style.background = this.cardStyles[this.activeIndex].gradient;
+                this.accWrap.classList.add('open');
+            }
+        }
+    }
+    customElements.define('ministify-ecosystem-deck', MinistifyEcosystemDeck);
+
+    // --- 1. NEURAL CONSTELLATION BACKGROUND LOGIC ---
+    const particleContainer = document.getElementById('particle-container');
+    let animationFrameId;
+    let nodes = [];
+    let lines = [];
+    let mouseLines = [];
+    let mouseX = -1000;
+    let mouseY = -1000;
+
+    const connectionDist = 160; 
+    const mouseDist = 220;      
+
+    function initConstellation() {
+        if (animationFrameId) cancelAnimationFrame(animationFrameId);
+        
+        particleContainer.innerHTML = '<svg id="constellation-svg"></svg>';
+        const svg = document.getElementById('constellation-svg');
+        
+        nodes = [];
+        lines = [];
+        mouseLines = [];
+
+        const numNodes = Math.min(Math.floor((window.innerWidth * window.innerHeight) / 20000), 50);
+
+        for (let i = 0; i < numNodes; i++) {
+            const el = document.createElement('div');
+            el.className = 'atom';
+            particleContainer.appendChild(el);
+            
+            nodes.push({
+                el: el,
+                x: Math.random() * window.innerWidth,
+                y: Math.random() * window.innerHeight,
+                vx: (Math.random() - 0.5) * 1.5,
+                vy: (Math.random() - 0.5) * 1.5
+            });
+        }
+
+        for (let i = 0; i < numNodes; i++) {
+            for (let j = i + 1; j < numNodes; j++) {
+                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                line.setAttribute('class', 'connection');
+                svg.appendChild(line);
+                lines.push({ line, n1: nodes[i], n2: nodes[j] });
+            }
+        }
+
+        for (let i = 0; i < numNodes; i++) {
+            const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            line.setAttribute('class', 'connection');
+            svg.appendChild(line);
+            mouseLines.push({ line, n: nodes[i] });
+        }
+
+        animateConstellation();
+    }
+
+    function animateConstellation() {
+        nodes.forEach(n => {
+            let dxMouse = mouseX - n.x;
+            let dyMouse = mouseY - n.y;
+            let distMouse = Math.sqrt(dxMouse * dxMouse + dyMouse * dyMouse);
+            
+            if (distMouse < mouseDist && distMouse > 0) {
+                const force = (mouseDist - distMouse) / mouseDist;
+                n.vx += (dxMouse / distMouse) * force * 0.08;
+                n.vy += (dyMouse / distMouse) * force * 0.08;
+            }
+
+            n.x += n.vx;
+            n.y += n.vy;
+
+            if (n.x <= 0) { n.x = 0; n.vx *= -1; }
+            if (n.x >= window.innerWidth) { n.x = window.innerWidth; n.vx *= -1; }
+            if (n.y <= 0) { n.y = 0; n.vy *= -1; }
+            if (n.y >= window.innerHeight) { n.y = window.innerHeight; n.vy *= -1; }
+
+            n.vx *= 0.99; 
+            n.vy *= 0.99;
+            const speed = Math.sqrt(n.vx * n.vx + n.vy * n.vy);
+            
+            if (speed < 0.3) {
+                n.vx += (Math.random() - 0.5) * 0.1;
+                n.vy += (Math.random() - 0.5) * 0.1;
+            } else if (speed > 2.5) {
+                n.vx *= 0.9;
+                n.vy *= 0.9;
+            }
+
+            n.el.style.transform = `translate3d(${n.x}px, ${n.y}px, 0)`;
+        });
+
+        lines.forEach(l => {
+            let dx = l.n1.x - l.n2.x;
+            let dy = l.n1.y - l.n2.y;
+            let dist = Math.sqrt(dx * dx + dy * dy);
+            
+            if (dist < connectionDist) {
+                l.line.setAttribute('x1', l.n1.x);
+                l.line.setAttribute('y1', l.n1.y);
+                l.line.setAttribute('x2', l.n2.x);
+                l.line.setAttribute('y2', l.n2.y);
+                l.line.style.opacity = (1 - (dist / connectionDist)) * 0.6; 
+            } else {
+                l.line.style.opacity = 0;
+            }
+        });
+
+        mouseLines.forEach(l => {
+            let dx = l.n.x - mouseX;
+            let dy = l.n.y - mouseY;
+            let dist = Math.sqrt(dx * dx + dy * dy);
+            
+            if (dist < mouseDist) {
+                l.line.setAttribute('x1', l.n.x);
+                l.line.setAttribute('y1', l.n.y);
+                l.line.setAttribute('x2', mouseX);
+                l.line.setAttribute('y2', mouseY);
+                l.line.style.opacity = 1 - (dist / mouseDist);
+            } else {
+                l.line.style.opacity = 0;
+            }
+        });
+
+        animationFrameId = requestAnimationFrame(animateConstellation);
+    }
+
+    window.addEventListener('mousemove', (e) => {
+        mouseX = e.clientX;
+        mouseY = e.clientY;
+    });
+
+    window.addEventListener('mouseout', (e) => {
+        if (e.relatedTarget === null) {
+            mouseX = -1000;
+            mouseY = -1000;
+        }
+    });
+
+    let resizeTimer;
+    window.addEventListener('resize', () => {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(initConstellation, 200);
+    });
+
+    initConstellation();
+
+    // 2. LOADER DISMISSAL
+    window.addEventListener('load', () => {
+        setTimeout(() => {
+            document.querySelectorAll('.widget-loader').forEach(loader => {
+                loader.classList.add('hidden');
+            });
+        }, 150);
+    });
+
+    // 3. ORBIT WIDGET ACCORDION
+    const Orbit = (() => {
+        const SERVICES = {
+            apps: { 
+                color: "linear-gradient(135deg, #06b6d4, #0891b2)", 
+                t: "Custom Applications", 
+                html: "<ul class='rich-list'><li>Development of secure, closed-source operational tools.</li><li>Offline-first architectures utilizing IndexedDB & local caching.</li><li>Cross-platform progressive web apps for specialized workflows.</li></ul>" 
+            },
+            ai: { 
+                color: "linear-gradient(135deg, #14b8a6, #0f766e)", 
+                t: "AI Adoption Strategy", 
+                html: "<ul class='rich-list'><li>Integration of private LLMs to ensure data sovereignty.</li><li>Workflow automation using custom prompt logic.</li><li>Secure data parsing algorithms without third-party exposure.</li></ul>" 
+            },
+            courses: { 
+                color: "linear-gradient(135deg, #10b981, #059669)", 
+                t: "Tech Education", 
+                html: "<ul class='rich-list'><li>Deployment of organizational Learning Management Systems.</li><li>Drafting of structured staff training manuals.</li><li>Curricula focused on internal digital literacy.</li></ul>" 
+            },
+            webdev: { 
+                color: "linear-gradient(135deg, #0ea5e9, #0284c7)", 
+                t: "Web Deployments", 
+                html: "<ul class='rich-list'><li>Architecture of secure VPS and cloud environments.</li><li>High-performance organizational portal development.</li><li>Closed-ecosystem distribution models.</li></ul>" 
+            },
+            support: { 
+                color: "linear-gradient(135deg, #20b2aa, #008080)", 
+                t: "Systems Revitalization", 
+                html: "<ul class='rich-list'><li>Hardware lifecycle extension via lightweight operating systems.</li><li>Secure endpoint deployment using ChromeOS Flex & Linux.</li><li>Centralized, subscription-free machine management.</li></ul>" 
+            },
+            evangelism: { 
+                color: "linear-gradient(135deg, #008b8b, #006666)", 
+                t: "Digital Outreach", 
+                html: "<ul class='rich-list'><li>Strategic digital pipelines to amplify operational missions.</li><li>Media production routing including OBS & Internet Radio.</li><li>Unified team communication infrastructure.</li></ul>" 
+            }
+        };
+        const wrap = document.getElementById('orbit-accordion');
+        const content = document.getElementById('orbit-acc-content');
+        const ring = document.getElementById('ring');
+
+        return {
+            open: (key) => { 
+                ring.classList.add('paused'); 
+                const data = SERVICES[key]; 
+                content.innerHTML = `
+                    <button class="acc-close" onclick="Orbit.close()">&times;</button>
+                    <div class="modal-color-bar" style="background: ${data.color}"></div>
+                    <h3 class="modal-title">${data.t}</h3>
+                    <div class="modal-body">${data.html}</div>
+                `;
+                wrap.classList.add('open');
+            },
+            close: () => { 
+                wrap.classList.remove('open'); 
+                ring.classList.remove('paused'); 
+            }
+        };
+    })();
+
+    // 4. MAIN MODAL LOGIC
+    const MainModal = (() => {
+        const modal = document.getElementById('main-modal');
+        const contentBox = document.getElementById('main-modal-content');
+        const modalBox = document.querySelector('.main-modal-box');
+        
+        const closeMod = () => {
+            modal.classList.remove('active');
+            setTimeout(() => { modalBox.classList.remove('wide'); contentBox.innerHTML = ''; }, 300);
+        };
+
+        document.getElementById('main-modal-close').onclick = closeMod;
+        modal.onclick = (e) => { if (e.target === modal) closeMod(); };
+
+        return {
+            open: (html, isWide = false) => {
+                if(isWide) modalBox.classList.add('wide');
+                else modalBox.classList.remove('wide');
+                contentBox.innerHTML = html;
+                modal.classList.add('active');
+            }
+        };
+    })();
+
+    // 5. CALCULATOR INITIALIZATION LOGIC
+    function initCalculator() {
+        const calcTabs = document.querySelectorAll('.calc-tab');
+        const calcPanels = document.querySelectorAll('.calc-panel');
+
+        calcTabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                calcTabs.forEach(t => t.classList.remove('active'));
+                calcPanels.forEach(p => p.classList.remove('active'));
+                tab.classList.add('active');
+                const targetId = tab.getAttribute('data-target');
+                document.getElementById(targetId).classList.add('active');
+            });
+        });
+
+        const winSlider = document.getElementById('win-slider');
+        const macSlider = document.getElementById('mac-slider');
+        const saasSlider = document.getElementById('saas-slider');
+        const itSlider = document.getElementById('it-slider');
+        
+        const winVal = document.getElementById('win-val');
+        const macVal = document.getElementById('mac-val');
+        const saasVal = document.getElementById('saas-val');
+        const itVal = document.getElementById('it-val');
+        
+        const breakdownHw = document.getElementById('breakdown-hw');
+        const breakdownSw = document.getElementById('breakdown-sw');
+        const breakdownIt = document.getElementById('breakdown-it');
+        const totalSavings = document.getElementById('total-savings');
+        
+        const NEW_WIN_COST = 30000; 
+        const NEW_MAC_COST = 50000;
+
+        function calculateSavings() {
+            const wins = parseInt(winSlider.value);
+            const macs = parseInt(macSlider.value);
+            const saas = parseInt(saasSlider.value);
+            const it = parseInt(itSlider.value);
+
+            winVal.textContent = wins;
+            macVal.textContent = macs;
+            saasVal.textContent = `₱${saas.toLocaleString()}`;
+            itVal.textContent = `₱${it.toLocaleString()}`;
+
+            const hwSaved = (wins * NEW_WIN_COST) + (macs * NEW_MAC_COST);
+            const swSaved = saas * 12; 
+            const itSaved = it * 12;   
+            const total = hwSaved + swSaved + itSaved;
+
+            breakdownHw.textContent = `₱${hwSaved.toLocaleString()}`;
+            breakdownSw.textContent = `₱${swSaved.toLocaleString()}`;
+            breakdownIt.textContent = `₱${itSaved.toLocaleString()}`;
+            totalSavings.textContent = `₱${total.toLocaleString()}`;
+        }
+
+        winSlider.addEventListener('input', calculateSavings);
+        macSlider.addEventListener('input', calculateSavings);
+        saasSlider.addEventListener('input', calculateSavings);
+        itSlider.addEventListener('input', calculateSavings);
+
+        const migOsType = document.getElementById('mig-os-type');
+        const migPcSlider = document.getElementById('mig-pc-slider');
+        const migTrainSlider = document.getElementById('mig-train-slider');
+
+        const migPcVal = document.getElementById('mig-pc-val');
+        const migTrainVal = document.getElementById('mig-train-val');
+
+        const migBreakdownHw = document.getElementById('mig-breakdown-hw');
+        const migBreakdownTrain = document.getElementById('mig-breakdown-train');
+        const migTotalQuote = document.getElementById('mig-total-quote');
+
+        const TRAINING_SESSION_COST = 5000;
+
+        function calculateMigration() {
+            const osBaseCost = parseInt(migOsType.value);
+            const pcs = parseInt(migPcSlider.value);
+            const sessions = parseInt(migTrainSlider.value);
+
+            migPcVal.textContent = pcs;
+            migTrainVal.textContent = sessions;
+
+            const deploymentCost = osBaseCost * pcs;
+            const trainingCost = sessions * TRAINING_SESSION_COST;
+            const total = deploymentCost + trainingCost;
+
+            migBreakdownHw.textContent = `₱${deploymentCost.toLocaleString()}`;
+            migBreakdownTrain.textContent = `₱${trainingCost.toLocaleString()}`;
+            migTotalQuote.textContent = `₱${total.toLocaleString()}`;
+        }
+
+        migOsType.addEventListener('change', calculateMigration);
+        migPcSlider.addEventListener('input', calculateMigration);
+        migTrainSlider.addEventListener('input', calculateMigration);
+
+        calculateSavings();
+        calculateMigration();
+    }
+
+    // 6. HEADER BUTTON DATA INJECTION
+    document.getElementById('btn-quote').onclick = (e) => {
+        e.preventDefault();
+        MainModal.open(`
+            <h3 style="font-size: 1.5rem; font-weight: 800; color: #0f172a; margin-bottom: 5px; display: flex; align-items: center; gap: 8px;">
+                <i class="fas fa-calculator" style="color: var(--cool-primary);"></i> The Cost of Freedom
+            </h3>
+            <p style="color: #64748b; font-size: 0.95rem; margin-bottom: 15px;">See your potential savings by abandoning proprietary lock-in, and estimate your migration costs.</p>
+            
+            <div class="modal-calc">
+                <div class="calc-nav">
+                    <div class="calc-tab active" data-target="calc-savings">Savings Calculator</div>
+                    <div class="calc-tab" data-target="calc-migration">Migration Quote</div>
+                </div>
+
+                <div class="calc-content-area">
+                    <div id="calc-savings" class="calc-panel active">
+                        <div class="calculator-grid">
+                            <div class="sliders-column">
+                                <div class="slider-group">
+                                    <div class="slider-header">
+                                        <span>Windows PCs failing upgrade (avg ₱30K)</span>
+                                        <span class="slider-val" id="win-val">5</span>
+                                    </div>
+                                    <input type="range" id="win-slider" min="0" max="50" value="5">
+                                </div>
+
+                                <div class="slider-group">
+                                    <div class="slider-header">
+                                        <span>Apple Macs failing upgrade (avg ₱50K)</span>
+                                        <span class="slider-val" id="mac-val">2</span>
+                                    </div>
+                                    <input type="range" id="mac-slider" min="0" max="50" value="2">
+                                    <p class="slider-helper">Avoid buying new hardware just to meet artificial requirements.</p>
+                                </div>
+
+                                <div class="slider-group">
+                                    <div class="slider-header">
+                                        <span>Monthly software bills (₱)</span>
+                                        <span class="slider-val" id="saas-val">₱7,500</span>
+                                    </div>
+                                    <input type="range" id="saas-slider" min="0" max="50000" step="500" value="7500">
+                                    <p class="slider-helper">Microsoft 365, paid tools, or hosting replaced by open alternatives.</p>
+                                </div>
+
+                                <div class="slider-group" style="margin-bottom: 0;">
+                                    <div class="slider-header">
+                                        <span>Monthly IT repair & support (₱)</span>
+                                        <span class="slider-val" id="it-val">₱5,000</span>
+                                    </div>
+                                    <input type="range" id="it-slider" min="0" max="50000" step="500" value="5000">
+                                </div>
+                            </div>
+
+                            <div class="results-column">
+                                <div class="results-panel">
+                                    <h3>Year 1 Savings Breakdown</h3>
+                                    <div class="breakdown-row">
+                                        <span>Hardware upgrades avoided:</span>
+                                        <span id="breakdown-hw">₱250,000</span>
+                                    </div>
+                                    <div class="breakdown-row">
+                                        <span>Eliminated software fees:</span>
+                                        <span id="breakdown-sw">₱90,000</span>
+                                    </div>
+                                    <div class="breakdown-row">
+                                        <span>Reduced IT support needs:</span>
+                                        <span id="breakdown-it">₱60,000</span>
+                                    </div>
+                                    <div class="total-row">
+                                        <span class="label">Total Money Saved:</span>
+                                        <span class="savings-amount" id="total-savings">₱400,000</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="calc-migration" class="calc-panel">
+                        <div class="calculator-grid">
+                            <div class="sliders-column">
+                                <div class="slider-group">
+                                    <div class="slider-header">
+                                        <span>Target Operating System</span>
+                                    </div>
+                                    <select id="mig-os-type">
+                                        <option value="1500">ChromeOS Flex (Lightweight Web OS)</option>
+                                        <option value="2500">Ubuntu / Linux Mint (Full Desktop Power)</option>
+                                    </select>
+                                </div>
+
+                                <div class="slider-group">
+                                    <div class="slider-header">
+                                        <span>Number of devices to migrate</span>
+                                        <span class="slider-val" id="mig-pc-val">5</span>
+                                    </div>
+                                    <input type="range" id="mig-pc-slider" min="1" max="50" value="5">
+                                </div>
+
+                                <div class="slider-group">
+                                    <div class="slider-header">
+                                        <span>Team Training Sessions</span>
+                                        <span class="slider-val" id="mig-train-val">1</span>
+                                    </div>
+                                    <input type="range" id="mig-train-slider" min="0" max="10" step="1" value="1">
+                                    <p class="slider-helper">Half-day sessions on tech literacy and new workflows.</p>
+                                </div>
+                            </div>
+
+                            <div class="results-column">
+                                <div class="results-panel">
+                                    <h3>Estimated Migration Investment</h3>
+                                    <div class="breakdown-row">
+                                        <span>OS Deployment & Migration:</span>
+                                        <span id="mig-breakdown-hw">₱7,500</span>
+                                    </div>
+                                    <div class="breakdown-row">
+                                        <span>Training & Onboarding:</span>
+                                        <span id="mig-breakdown-train">₱5,000</span>
+                                    </div>
+                                    <div class="total-row">
+                                        <span class="label">Estimated Quote:</span>
+                                        <span class="savings-amount quote-amount" id="mig-total-quote">₱12,500</span>
+                                    </div>
+                                    <button class="widget-cta" onclick="window.location.href='mailto:ministify@gmail.com?subject=Migration%20Quote%20Inquiry'">Book Your Migration</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `, true);
+
+        initCalculator();
+    };
+
+    document.getElementById('btn-contact').onclick = (e) => {
+        e.preventDefault();
+        MainModal.open(`
+            <h3 style="font-size: 1.5rem; font-weight: 800; color: #0f172a; margin-bottom: 10px; display: flex; align-items: center; gap: 8px;">
+                <i class="fas fa-headset" style="color: var(--cool-primary);"></i> Get in Touch
+            </h3>
+            <p style="color:#475569; margin-bottom: 20px; font-size: 0.95rem;">Operating out of Cagayan de Oro, Philippines. Ready to assist with enterprise technical deployments and strategy.</p>
+            <div style="display:flex; flex-wrap:wrap; gap:12px;">
+                <a href="tel:+639161469193" style="flex: 1; min-width: 120px; padding: 15px 10px; background:#f8fafc; border: 1px solid #cbd5e1; border-radius:10px; color:#0f172a; text-decoration:none; text-align:center; font-size:0.85rem; font-weight:600; transition:0.2s;" onmouseover="this.style.borderColor='var(--cool-primary)'" onmouseout="this.style.borderColor='#cbd5e1'">
+                    <i class="fas fa-phone-alt" style="color: var(--cool-primary); display:block; margin-bottom:8px; font-size:1.3rem;"></i>Call Us
+                </a>
+                <a href="mailto:ministify@gmail.com" style="flex: 1; min-width: 120px; padding: 15px 10px; background:#f8fafc; border: 1px solid #cbd5e1; border-radius:10px; color:#0f172a; text-decoration:none; text-align:center; font-size:0.85rem; font-weight:600; transition:0.2s;" onmouseover="this.style.borderColor='var(--cool-primary)'" onmouseout="this.style.borderColor='#cbd5e1'">
+                    <i class="fas fa-envelope" style="color: var(--cool-primary); display:block; margin-bottom:8px; font-size:1.3rem;"></i>Email
+                </a>
+                <a href="https://wa.me/639957522922" target="_blank" style="flex: 1; min-width: 120px; padding: 15px 10px; background:#f8fafc; border: 1px solid #cbd5e1; border-radius:10px; color:#0f172a; text-decoration:none; text-align:center; font-size:0.85rem; font-weight:600; transition:0.2s;" onmouseover="this.style.borderColor='var(--cool-success)'" onmouseout="this.style.borderColor='#cbd5e1'">
+                    <i class="fab fa-whatsapp" style="color: var(--cool-success); display:block; margin-bottom:8px; font-size:1.3rem;"></i>WhatsApp
+                </a>
+            </div>
+        `, false);
+    };
+</script>
+</body>
+</html>
